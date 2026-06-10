@@ -8,7 +8,14 @@ import {
   HelpCircle,
   Sparkles,
   Droplets,
+  LogOut,
+  User,
+  Shield,
 } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
+import { useIsAdmin } from "@/hooks/use-admin";
 import {
   Sidebar,
   SidebarContent,
@@ -34,6 +41,7 @@ const mainNav = [
 ];
 
 const secondaryNav = [
+  { title: "Meu perfil", url: "/perfil", icon: User },
   { title: "Recompensas", url: "/recompensas", icon: Trophy },
   { title: "Zona interativa", url: "/zona", icon: Sparkles },
   { title: "Perguntas frequentes", url: "/faq", icon: HelpCircle },
@@ -44,6 +52,7 @@ function AppSidebar() {
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (r) => r.location.pathname });
   const isActive = (p: string) => (p === "/" ? pathname === "/" : pathname.startsWith(p));
+  const { isAdmin } = useIsAdmin();
 
   return (
     <Sidebar collapsible="icon">
@@ -101,22 +110,69 @@ function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Administração</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive("/admin")}>
+                    <Link to="/admin">
+                      <Shield className="h-4 w-4" />
+                      <span>Painel admin</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border/40 p-3">
-        {!collapsed && (
-          <div className="rounded-lg bg-sidebar-accent/40 p-3 text-xs text-sidebar-foreground/80">
-            <div className="flex items-center gap-2 font-semibold text-sidebar-foreground">
-              <span className="h-2 w-2 rounded-full bg-[color:var(--safe)]" />
-              Sistema ativo
-            </div>
-            <p className="mt-1 leading-relaxed">
-              Última varredura há 2 minutos.
-            </p>
-          </div>
-        )}
+      <SidebarFooter className="border-t border-sidebar-border/40 p-3 space-y-2">
+        {!collapsed && <UserCard />}
+        <LogoutButton collapsed={collapsed} />
       </SidebarFooter>
     </Sidebar>
+  );
+}
+
+function UserCard() {
+  const { user } = useAuth();
+  const name = (user?.user_metadata?.display_name as string) || user?.email?.split("@")[0] || "Sentinela";
+  const initial = name.charAt(0).toUpperCase();
+  return (
+    <Link
+      to="/perfil"
+      className="flex items-center gap-2 rounded-lg bg-sidebar-accent/40 p-2 text-xs transition hover:bg-sidebar-accent"
+    >
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-blood text-sm font-semibold text-primary-foreground">
+        {initial}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="truncate font-semibold text-sidebar-foreground">{name}</div>
+        <div className="truncate text-[10px] text-sidebar-foreground/60">{user?.email}</div>
+      </div>
+    </Link>
+  );
+}
+
+function LogoutButton({ collapsed }: { collapsed: boolean }) {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast.success("Sessão encerrada");
+  };
+  return (
+    <Button
+      variant="ghost"
+      size={collapsed ? "icon" : "sm"}
+      onClick={handleLogout}
+      className="w-full justify-start gap-2 text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+    >
+      <LogOut className="h-4 w-4" />
+      {!collapsed && <span>Sair</span>}
+    </Button>
   );
 }
 

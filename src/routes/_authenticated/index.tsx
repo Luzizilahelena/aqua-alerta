@@ -1,5 +1,4 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { AppLayout } from "@/components/AppLayout";
 import { RiskMap } from "@/components/RiskMap";
 import { reports, severityMeta, rewards, faqItems } from "@/lib/mock-data";
 import {
@@ -12,7 +11,7 @@ import {
   MapPin,
 } from "lucide-react";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Maré · Alerta comunitário para enchentes" },
@@ -28,7 +27,6 @@ export const Route = createFileRoute("/")({
 
 function Dashboard() {
   return (
-    <AppLayout>
       <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
         {/* Header */}
         <div className="flex flex-col gap-1">
@@ -213,6 +211,5 @@ function Dashboard() {
           </Link>
         </div>
       </div>
-    </AppLayout>
   );
 }

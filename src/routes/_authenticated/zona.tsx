@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppLayout } from "@/components/AppLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { MessageCircle, ThumbsUp, Send, Sparkles } from "lucide-react";
 
-export const Route = createFileRoute("/zona")({
+export const Route = createFileRoute("/_authenticated/zona")({
   head: () => ({ meta: [{ title: "Zona interativa · Maré" }] }),
   component: ZonaPage,
 });
@@ -54,7 +53,6 @@ function ZonaPage() {
   };
 
   return (
-    <AppLayout>
       <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
         <header>
           <span className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-primary">
@@ -114,6 +112,5 @@ function ZonaPage() {
           ))}
         </ul>
       </div>
-    </AppLayout>
   );
 }

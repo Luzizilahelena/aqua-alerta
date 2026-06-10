@@ -1,10 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppLayout } from "@/components/AppLayout";
 import { RiskMap } from "@/components/RiskMap";
 import { reports, severityMeta } from "@/lib/mock-data";
 import { MapPin } from "lucide-react";
 
-export const Route = createFileRoute("/mapa")({
+export const Route = createFileRoute("/_authenticated/mapa")({
   head: () => ({
     meta: [
       { title: "Mapa de risco · Maré" },
@@ -16,7 +15,6 @@ export const Route = createFileRoute("/mapa")({
 
 function MapaPage() {
   return (
-    <AppLayout>
       <div className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
         <header>
           <span className="text-xs font-medium uppercase tracking-[0.2em] text-primary">Geografia</span>
@@ -59,6 +57,5 @@ function MapaPage() {
           </aside>
         </div>
       </div>
-    </AppLayout>
   );
 }

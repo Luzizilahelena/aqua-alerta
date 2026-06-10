@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { AppLayout } from "@/components/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
-import { Droplets, Construction, Mountain, AlertCircle, MapPin, Camera, Check } from "lucide-react";
+import { Droplets, Construction, Mountain, AlertCircle, MapPin, Camera, Check, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/lib/auth-context";
 
-export const Route = createFileRoute("/reportar")({
+export const Route = createFileRoute("/_authenticated/reportar")({
   head: () => ({ meta: [{ title: "Reportar · Maré" }] }),
   component: ReportarPage,
 });
@@ -28,19 +29,38 @@ const severities = [
 ];
 
 function ReportarPage() {
+  const { user } = useAuth();
   const [type, setType] = useState("alagamento");
   const [severity, setSeverity] = useState("media");
+  const [location, setLocation] = useState("");
+  const [description, setDescription] = useState("");
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return;
+    setSubmitting(true);
+    const { error } = await supabase.from("reports").insert({
+      user_id: user.id,
+      type,
+      severity,
+      location,
+      description: description || null,
+    });
+    setSubmitting(false);
+    if (error) {
+      toast.error("Não foi possível enviar o reporte");
+      return;
+    }
     setSent(true);
+    setLocation("");
+    setDescription("");
     toast.success("Reporte enviado! +20 pontos creditados.");
     setTimeout(() => setSent(false), 2500);
   };
 
   return (
-    <AppLayout>
       <div className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6">
         <header>
           <span className="text-xs font-medium uppercase tracking-[0.2em] text-primary">
@@ -113,6 +133,8 @@ function ReportarPage() {
               <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 id="loc"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
                 placeholder="Ex: Av. Brasil, 1240 — em frente à padaria"
                 className="pl-9"
                 required
@@ -126,6 +148,8 @@ function ReportarPage() {
             </Label>
             <Textarea
               id="desc"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
               placeholder="Conte o que está acontecendo. Profundidade da água, há quanto tempo, etc."
               rows={3}
             />
@@ -148,14 +172,14 @@ function ReportarPage() {
             <Button
               type="submit"
               size="lg"
+              disabled={submitting}
               className="w-full gap-2 bg-gradient-blood text-primary-foreground shadow-glow hover:opacity-95 sm:w-auto"
             >
-              {sent ? <Check className="h-4 w-4" /> : null}
-              {sent ? "Enviado!" : "Enviar reporte"}
+              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : sent ? <Check className="h-4 w-4" /> : null}
+              {submitting ? "Enviando..." : sent ? "Enviado!" : "Enviar reporte"}
             </Button>
           </div>
         </form>
       </div>
-    </AppLayout>
   );
 }
